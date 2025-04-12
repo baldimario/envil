@@ -73,13 +73,13 @@ int validate_check(const Check *check, const char *value) {
 int validate_variable(const EnvVariable *var, const char *value) {
     if (!var) return ENVIL_CONFIG_ERROR;
     
-    printf("Validating variable '%s' with value '%s'", var->name, value ? value : "NULL");
-    printf("Variable details:");
-    printf("  name: %s", var->name);
-    printf("  type: %s", get_type_name(var->type));
-    printf("  required: %s", var->required ? "true" : "false");
-    printf("  default: %s", var->default_value ? var->default_value : "NULL");
-    printf("  num_checks: %d", var->check_count);
+    printf("Validating variable '%s' with value '%s'\n", var->name, value ? value : "NULL");
+    printf("Variable details:\n");
+    printf("  name: %s\n", var->name);
+    printf("  type: %s\n", get_type_name(var->type));
+    printf("  required: %s\n", var->required ? "true" : "false");
+    printf("  default: %s\n", var->default_value ? var->default_value : "NULL");
+    printf("  num_checks: %d\n", var->check_count);
     
     for (int i = 0; i < var->check_count; i++) {
         const Check *check = &var->checks[i];
@@ -92,24 +92,24 @@ int validate_variable(const EnvVariable *var, const char *value) {
             fprintf(stderr, "Error: Variable '%s' is required but not set\n", var->name);
             return ENVIL_MISSING_VAR;
         }
-        printf("Variable '%s' not set but not required, validation passed", var->name);
+        printf("Variable '%s' not set but not required, validation passed\n", var->name);
         return ENVIL_OK;
     }
 
-    printf("Checking value: '%s'", value);
+    printf("Checking value: '%s'\n", value);
 
     // Run type check first if present
     for (int i = 0; i < var->check_count; i++) {
         const Check *check = &var->checks[i];
         if (strcmp(check->definition->name, "type") == 0) {
-            printf("Running type check: %s", get_type_name(check->value.int_value));
+            printf("Running type check: %s\n", get_type_name(check->value.int_value));
             int check_result = validate_check(check, value);
             if (check_result != ENVIL_OK) {
                 fprintf(stderr, "Error: Variable '%s' has invalid type - expected %s\n", 
                     var->name, get_type_name(check->value.int_value));
                 return check_result;
             }
-            printf("Type check passed");
+            printf("Type check passed\n");
         }
     }
 
@@ -117,19 +117,18 @@ int validate_variable(const EnvVariable *var, const char *value) {
     for (int i = 0; i < var->check_count; i++) {
         const Check *check = &var->checks[i];
         if (strcmp(check->definition->name, "type") != 0) {
-            printf("Running check: %s", check->definition->name);
+            printf("Running check: %s\n", check->definition->name);
             
             int check_result = validate_check(check, value);
             if (check_result != ENVIL_OK) {
-                fprintf(stderr, "Error: Variable '%s' failed %s check", 
-                    var->name, check->definition->name);
+                fprintf(stderr, "Error: Variable '%s' failed %s check\n", var->name, check->definition->name);
                 
                 if (strcmp(check->definition->name, "gt") == 0) {
-                    fprintf(stderr, " (value must be greater than %d)", check->value.int_value);
+                    fprintf(stderr, " (value must be greater than %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "lt") == 0) {
-                    fprintf(stderr, " (value must be less than %d)", check->value.int_value);
+                    fprintf(stderr, " (value must be less than %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "len") == 0) {
-                    fprintf(stderr, " (length must be exactly %d)", check->value.int_value);
+                    fprintf(stderr, " (length must be exactly %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "enum") == 0) {
                     fprintf(stderr, " (allowed values: ");
                     char **values = check->value.enum_values;
@@ -138,33 +137,33 @@ int validate_variable(const EnvVariable *var, const char *value) {
                         if (*(values + 1)) fprintf(stderr, ", ");
                         values++;
                     }
-                    fprintf(stderr, ")");
+                    fprintf(stderr, ")\n");
                 }
                 fprintf(stderr, "\n");
                 return check_result;
             }
-            printf("Check passed: %s", check->definition->name);
+            printf("Check passed: %s\n", check->definition->name);
         }
     }
 
-    printf("All validations passed for '%s'", var->name);
+    printf("All validations passed for '%s'\n", var->name);
     return ENVIL_OK;
 }
 
 int validate_variable_with_errors(const EnvVariable *var, const char *value, ValidationErrors* errors) {
     if (!var || !errors) return ENVIL_CONFIG_ERROR;
     
-    printf("Validating variable '%s' with value '%s'", var->name, value ? value : "NULL");
+    printf("Validating variable '%s' with value '%s'\n", var->name, value ? value : "NULL");
     const char *type_str = NULL;
 
     ///
-    printf("Number of checks: %d", var->check_count);
+    printf("Number of checks: %d\n", var->check_count);
     for (int i = 0; i < var->check_count; i++) {
         const Check *check = &var->checks[i];
-        printf("Check: %s", check->definition->name);
+        printf("Check: %s\n", check->definition->name);
         if (strcmp(check->definition->name, "type") == 0) {
             type_str = get_type_name(check->value.int_value);
-            printf("Variable '%s' has type check: %s", var->name, type_str);
+            printf("Variable '%s' has type check: %s\n", var->name, type_str);
             break;
         }
     }
@@ -176,11 +175,11 @@ int validate_variable_with_errors(const EnvVariable *var, const char *value, Val
             add_validation_error(errors, var->name, "variable is required but not set", ENVIL_MISSING_VAR);
             return ENVIL_MISSING_VAR;
         }
-        printf("Variable '%s' not set but not required, validation passed", var->name);
+        printf("Variable '%s' not set but not required, validation passed\n", var->name);
         return ENVIL_OK;
     }
 
-    printf("Checking value: '%s'", value);
+    printf("Checking value: '%s'\n", value);
 
     // Run all checks, with type check first if present
     for (int i = 0; i < var->check_count; i++) {
@@ -188,16 +187,15 @@ int validate_variable_with_errors(const EnvVariable *var, const char *value, Val
         
         // Run type check first
         if (strcmp(check->definition->name, "type") == 0) {
-            printf("Running type check: %s", get_type_name(check->value.int_value));
+            printf("Running type check: %s\n", get_type_name(check->value.int_value));
             int check_result = validate_check(check, value);
             if (check_result != ENVIL_OK) {
                 char message[256];
-                snprintf(message, sizeof(message), "invalid type - expected %s", 
-                    get_type_name(check->value.int_value));
+                snprintf(message, sizeof(message), "invalid type - expected %s\n", get_type_name(check->value.int_value));
                 add_validation_error(errors, var->name, message, check_result);
                 return check_result;
             }
-            printf("Type check passed");
+            printf("Type check passed\n");
         }
     }
 
@@ -205,21 +203,18 @@ int validate_variable_with_errors(const EnvVariable *var, const char *value, Val
     for (int i = 0; i < var->check_count; i++) {
         const Check *check = &var->checks[i];
         if (strcmp(check->definition->name, "type") != 0) {
-            printf("Running check: %s", check->definition->name);
+            printf("Running check: %s\n", check->definition->name);
             int check_result = validate_check(check, value);
             if (check_result != ENVIL_OK) {
                 char message[512] = {0};
-                sprintf(message, "failed %s check", check->definition->name);
+                sprintf(message, "failed %s check\n", check->definition->name);
                 
                 if (strcmp(check->definition->name, "gt") == 0) {
-                    sprintf(message + strlen(message), " (value must be greater than %d)", 
-                        check->value.int_value);
+                    sprintf(message + strlen(message), " (value must be greater than %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "lt") == 0) {
-                    sprintf(message + strlen(message), " (value must be less than %d)", 
-                        check->value.int_value);
+                    sprintf(message + strlen(message), " (value must be less than %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "len") == 0) {
-                    sprintf(message + strlen(message), " (length must be exactly %d)", 
-                        check->value.int_value);
+                    sprintf(message + strlen(message), " (length must be exactly %d)\n", check->value.int_value);
                 } else if (strcmp(check->definition->name, "enum") == 0) {
                     strcat(message, " (allowed values: ");
                     char **values = check->value.enum_values;
@@ -228,17 +223,17 @@ int validate_variable_with_errors(const EnvVariable *var, const char *value, Val
                         if (*(values + 1)) strcat(message, ", ");
                         values++;
                     }
-                    strcat(message, ")");
+                    strcat(message, ")\n");
                 }
                 
                 add_validation_error(errors, var->name, message, check_result);
                 return check_result;
             }
-            printf("Check passed: %s", check->definition->name);
+            printf("Check passed: %s\n", check->definition->name);
         }
     }
 
-    printf("All validations passed for '%s'", var->name);
+    printf("All validations passed for '%s'\n", var->name);
     return ENVIL_OK;
 }
 

@@ -37,26 +37,30 @@ struct option* get_check_options(CheckDefinition checks[], int count) {
  * Caller is responsible for freeing the returned array and the check_options.
  */
 struct option* create_long_options() {
+    // Get the number of base options and check options
+    size_t num_base = get_base_options_count();
     size_t num_checks = get_check_options_count();
-    size_t num_base_options = get_base_options_count();
     
-    struct option* check_options = get_check_options(checks, num_checks);
-    if (!check_options) {
-        return NULL;
-    }
-
-    struct option* long_options = calloc(num_base_options + num_checks + 1, sizeof(struct option));
+    // Allocate space for the combined array (+1 for NULL terminator)
+    struct option* long_options = calloc(num_base + num_checks + 1, sizeof(struct option));
     if (!long_options) {
-        free(check_options);
         fprintf(stderr, "Memory allocation failed for long options\n");
         return NULL;
     }
 
-    memcpy(long_options, base_options, num_base_options * sizeof(struct option));
-    memcpy(long_options + num_base_options, check_options, num_checks * sizeof(struct option));
-    // Last element is already zeroed by calloc
+    // Copy base options
+    memcpy(long_options, base_options, num_base * sizeof(struct option));
+    
+    // Add check options
+    for (size_t i = 0; i < num_checks; i++) {
+        struct option* opt = &long_options[num_base + i];
+        opt->name = checks[i].name;
+        opt->has_arg = required_argument;
+        opt->flag = NULL;
+        opt->val = 0;  // Use 0 for check options to distinguish from base options
+    }
 
-    free(check_options); // We can free this now as it's been copied
+    // Last element is already zeroed by calloc
     return long_options;
 }
 
@@ -72,6 +76,8 @@ char* get_getopt_long_string() {
     }
 
     int pos = 0;
+
+    // Add base options to the getopt string
     for (size_t i = 0; i < get_base_options_count() && base_options[i].name != NULL; i++) {
         if (base_options[i].val != 0) {
             getopt_str[pos++] = (char)base_options[i].val;
