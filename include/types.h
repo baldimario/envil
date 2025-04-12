@@ -20,16 +20,16 @@ typedef enum {
     TYPE_JSON
 } EnvType;
 
-typedef int (*CheckFunction)(char *value, char *param);
+typedef int (*CheckFunction)(const char* value, const void* check_value);
 
 typedef struct {
-    char *name;
-    char *description;
-    int (*callback)(char *value, char *param);
+    const char* name;
+    const char* description;
+    CheckFunction callback;
 } CheckDefinition;
 
 typedef struct {
-    const CheckDefinition* check;
+    const CheckDefinition* definition;
     union {
         int int_value;
         char* str_value;
@@ -61,8 +61,8 @@ typedef struct {
 
 typedef struct {
     ValidationError *errors;
-    int error_count;
-    int error_capacity;
+    int count;
+    int capacity;
 } ValidationErrors;
 
 typedef enum {
@@ -71,5 +71,7 @@ typedef enum {
 } ConfigFormat;
 
 extern LogLevel g_log_level;
+
+const char* get_type_name(EnvType type);
 
 #endif // ENVIL_TYPES_H
