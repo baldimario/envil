@@ -2,6 +2,11 @@
 
 A lightweight C-based CLI tool for environment variable validation and management.
 
+<br/>
+<p align="center">
+    <img src="https://github.com/baldimario/envil/blob/main/doc/envil.png?raw=true" width="300px" height="300px" alt="Envil Logo" />
+</p>
+
 ## Features
 
 - Validate environment variables through CLI or configuration files (YAML/JSON)

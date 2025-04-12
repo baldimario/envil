@@ -1,0 +1,12 @@
+services:
+  baron:
+    image: baldimario/envil
+    build:
+      dockerfile: Dockerfile
+      target: latest
+    volumes:
+      - ./data:/data
+    env_file:
+      - .envil.env
+    profiles:
+      - default
