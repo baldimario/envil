@@ -76,17 +76,10 @@ char* get_getopt_long_string() {
         return NULL;
     }
 
-    int pos = 0;
+    const char* valid_options = "cepvlhC:d:"; // Added F: for format-completion
 
-    // Add base options to the getopt string
-    for (size_t i = 0; i < get_base_options_count() && base_options[i].name != NULL; i++) {
-        if (base_options[i].val != 0) {
-            getopt_str[pos++] = (char)base_options[i].val;
-            if (base_options[i].has_arg == required_argument) {
-                getopt_str[pos++] = ':';
-            }
-        }
-    }
+    // Copy valid options to getopt string
+    strcpy(getopt_str, valid_options);
 
     return getopt_str;
 }
@@ -109,6 +102,7 @@ void print_usage() {
     fprintf(stderr, "  Single variable: envil -e VAR_NAME [-d VALUE] [-p]\n");
     fprintf(stderr, "  Config file: envil -c config.yml\n");
     fprintf(stderr, "  List checks: envil -l\n");
+    fprintf(stderr, "  Generate completion: envil -C <shell>\n");
     fprintf(stderr, "\nOptions:\n");
     fprintf(stderr, "  -c, --config FILE    Path to configuration file (YAML or JSON)\n");
     fprintf(stderr, "  -e, --env NAME       Environment variable name\n");
@@ -116,6 +110,7 @@ void print_usage() {
     fprintf(stderr, "  -p, --print          Print value if validation passes\n");
     fprintf(stderr, "  -v, --verbose        Enable verbose output\n");
     fprintf(stderr, "  -l, --list-checks    List available check types and descriptions\n");
+    fprintf(stderr, "  -C, --completion <shell>  Generate shell completion script (bash|zsh)\n");
     fprintf(stderr, "  -h, --help           Show this help message\n");
     exit(1);
 }

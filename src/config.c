@@ -30,6 +30,7 @@ struct option base_options[] = {
     {"print", no_argument, 0, 'p'},
     {"list-checks", no_argument, 0, 'l'},
     {"verbose", no_argument, 0, 'v'},
+    {"completion", required_argument, 0, 'C'},
     {"help", no_argument, 0, 'h'},
 };
 

@@ -54,6 +54,38 @@ RUN envil -c config.yml && rm /bin/envil && rm config.yml
 
 This allows you to validate environment variables before starting your application without adding dependencies to your final image.
 
+## Shell Completion
+
+Envil supports shell completion for bash and zsh. To enable completion:
+
+### Bash
+```bash
+# Generate and install completion script
+envil -C bash | sudo tee /etc/bash_completion.d/envil > /dev/null
+# Or for user-specific installation
+envil -C bash > ~/.bash_completion.d/envil
+
+# Source the completion (or restart your shell)
+source /etc/bash_completion.d/envil
+```
+
+### Zsh
+```bash
+# Generate and install completion script
+envil -C zsh | sudo tee /usr/share/zsh/site-functions/_envil > /dev/null
+# Or for user-specific installation
+envil -C zsh > ~/.zsh/completions/_envil
+
+# Add to your .zshrc if using user-specific installation:
+fpath=(~/.zsh/completions $fpath)
+```
+
+The completion system provides:
+- Flag completion (-e, -c, --type, etc.)
+- Environment variable name completion for -e/--env
+- File completion for -c/--config (filtered to .yml/.yaml/.json)
+- Value completion for --type (string, integer, float, json)
+
 ## Dependencies
 
 The project requires the following libraries:
@@ -101,6 +133,7 @@ Options:
 - `-c, --config FILE`: Use configuration file
 - `-v, --verbose`: Enable verbose logging
 - `-l, --list-checks`: List available checks
+- `-C, --completion SHELL`: Generate shell completion script
 - `-h, --help`: Show help message
 
 ### Examples

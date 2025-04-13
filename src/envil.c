@@ -11,6 +11,7 @@
 #include "types.h"
 #include "validator.h"
 #include "logger.h"
+#include "completion.h"
 
 static void cleanup_options(struct option* options, char* getopt_str) {
     free(options);
@@ -566,6 +567,20 @@ int main(int argc, char **argv) {
     // Main option parsing
     while ((option = getopt_long(argc, argv, getopt_str, long_options, &option_index)) != -1) {
         switch (option) {
+        case 'C': {
+            // Handle shell completion generation
+            ShellType shell = get_shell_type(optarg);
+            if (shell == SHELL_UNKNOWN) {
+                fprintf(stderr, "Error: Unsupported shell type '%s'. Supported types: bash, zsh\n", optarg);
+                cleanup_options(long_options, getopt_str);
+                free(checks);
+                return 1;
+            }
+            int result = generate_completion_script(shell, stdout);
+            cleanup_options(long_options, getopt_str);
+            free(checks);
+            return result == 0 ? 0 : 1;
+        }
         case 'c':
             has_config = true;
             config_path = optarg;
