@@ -1,0 +1,147 @@
+.TH ENVIL 1 "April 2025" "envil" "User Commands"
+.SH NAME
+envil \- environment variable validation and management tool
+.SH SYNOPSIS
+.B envil
+[\fB\-e\fR \fIVAR_NAME\fR] [\fB\-d\fR \fIVALUE\fR] [\fB\-p\fR]
+.br 
+.B envil
+[\fB\-c\fR \fICONFIG_FILE\fR]
+.br
+.B envil
+[\fB\-F\fR \fISHELL\fR]
+.SH DESCRIPTION
+.B envil
+is a lightweight tool for validating environment variables against defined rules and constraints.
+It supports both command-line validation of individual variables and configuration file-based
+validation of multiple variables.
+.SH OPTIONS
+.TP
+.BR \-c ", " \-\-config =\fIFILE\fR
+Use configuration file (YAML or JSON format)
+.TP
+.BR \-e ", " \-\-env =\fINAME\fR
+Environment variable name to validate
+.TP
+.BR \-d ", " \-\-default =\fIVALUE\fR
+Default value if environment variable is not set
+.TP
+.BR \-p ", " \-\-print
+Print value if validation passes
+.TP
+.BR \-v ", " \-\-verbose
+Enable verbose output
+.TP
+.BR \-l ", " \-\-list\-checks
+List available check types and descriptions
+.TP
+.BR \-F ", " \-\-format\-completion =\fISHELL\fR
+Generate shell completion script (bash or zsh)
+.TP
+.BR \-h ", " \-\-help
+Show help message
+.SH CHECK OPTIONS
+.TP
+.BR \-\-type =\fITYPE\fR
+Validate value type (string, integer, float, json)
+.TP
+.BR \-\-gt =\fINUMBER\fR
+Check if numeric value is greater than specified threshold
+.TP
+.BR \-\-lt =\fINUMBER\fR
+Check if numeric value is less than specified threshold
+.TP
+.BR \-\-len =\fINUMBER\fR
+Validate string length matches exactly
+.TP
+.BR \-\-enum =\fIVALUES\fR
+Validate value is one of specified comma-separated options
+.TP
+.BR \-\-cmd =\fICOMMAND\fR
+Run custom shell command for validation
+.SH EXAMPLES
+.PP
+Validate an integer PORT variable in range:
+.PP
+.nf
+.RS
+envil -e PORT --type integer --gt 1024 --lt 65535
+.RE
+.fi
+.PP
+Validate LOG_LEVEL with enum values:
+.PP
+.nf
+.RS
+envil -e LOG_LEVEL --enum "debug,info,warn,error"
+.RE
+.fi
+.PP
+Use configuration file:
+.PP
+.nf
+.RS
+envil -c config.yml
+.RE
+.fi
+.PP
+Generate shell completion:
+.PP
+.nf
+.RS
+envil -F bash > /etc/bash_completion.d/envil
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+.BR 0
+All validations passed
+.TP
+.BR 1
+Configuration error (invalid config file or options)
+.TP
+.BR 2
+Missing required variable
+.TP
+.BR 3
+Type validation failed
+.TP
+.BR 4
+Value validation failed (gt, lt, len, enum)
+.TP
+.BR 5
+Custom command check failed
+.SH FILES
+.TP
+.I /etc/bash_completion.d/envil
+Bash completion script
+.TP
+.I /usr/share/zsh/site-functions/_envil
+Zsh completion script
+.SH CONFIGURATION
+Configuration files can be in YAML or JSON format and specify validation rules for multiple variables:
+.PP
+.nf
+.RS
+PORT:
+  checks:
+    type: integer
+    gt: 1024
+    lt: 65535
+
+LOG_LEVEL:
+  default: "info"
+  checks:
+    type: string
+    enum: debug,info,warn,error
+.RE
+.fi
+.SH AUTHOR
+Written by Mario Baldini.
+.SH BUGS
+Report bugs at https://github.com/baldimario/envil/issues
+.SH COPYRIGHT
+Copyright \(co 2025 Mario Baldini.
+License MIT: <https://opensource.org/licenses/MIT>
+.PP
+This is free software: you are free to change and redistribute it.

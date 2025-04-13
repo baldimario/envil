@@ -94,35 +94,47 @@ install:
 	install -m 755 $(EXEC) /usr/local/bin/
 	@echo "Installed envil to /usr/local/bin/"
 	@mkdir -p /etc/bash_completion.d
-	./bin/envil -F bash > /etc/bash_completion.d/envil
+	./bin/envil -C bash > /etc/bash_completion.d/envil
 	@echo "Installed bash completion to /etc/bash_completion.d/envil"
 	@mkdir -p /usr/share/zsh/site-functions
-	./bin/envil -F zsh > /usr/share/zsh/site-functions/_envil
+	./bin/envil -C zsh > /usr/share/zsh/site-functions/_envil
 	@echo "Installed zsh completion to /usr/share/zsh/site-functions/_envil"
+	@mkdir -p /usr/share/man/man1
+	gzip -c man/man1/envil.1 > /usr/share/man/man1/envil.1.gz
+	@echo "Installed man page to /usr/share/man/man1/envil.1.gz"
+	@mandb -q
 
 install-user:
 	install -m 755 $(EXEC) ~/.local/bin/
 	@echo "Installed envil to ~/.local/bin/"
 	@mkdir -p ~/.bash_completion.d
-	./bin/envil -F bash > ~/.bash_completion.d/envil
+	./bin/envil -C bash > ~/.bash_completion.d/envil
 	@echo "Installed bash completion to ~/.bash_completion.d/envil"
 	@mkdir -p ~/.zsh/completions
-	./bin/envil -F zsh > ~/.zsh/completions/_envil
+	./bin/envil -C zsh > ~/.zsh/completions/_envil
 	@echo "Installed zsh completion to ~/.zsh/completions/_envil"
+	@mkdir -p ~/.local/share/man/man1
+	gzip -c man/man1/envil.1 > ~/.local/share/man/man1/envil.1.gz
+	@echo "Installed man page to ~/.local/share/man/man1/envil.1.gz"
 	@echo "Add this to your .zshrc to enable user completions:"
 	@echo "fpath=(~/.zsh/completions \$$fpath)"
+	@echo "Add this to your shell config to enable user man pages:"
+	@echo "export MANPATH=\$$MANPATH:~/.local/share/man"
 
 uninstall:
 	rm -f /usr/local/bin/envil
 	rm -f /etc/bash_completion.d/envil
 	rm -f /usr/share/zsh/site-functions/_envil
-	@echo "Uninstalled envil and completion scripts"
+	rm -f /usr/share/man/man1/envil.1.gz
+	@mandb -q
+	@echo "Uninstalled envil, completion scripts, and man page"
 
 uninstall-user:
 	rm -f ~/.local/bin/envil
 	rm -f ~/.bash_completion.d/envil
 	rm -f ~/.zsh/completions/_envil
-	@echo "Uninstalled envil and completion scripts from user directories"
+	rm -f ~/.local/share/man/man1/envil.1.gz
+	@echo "Uninstalled envil, completion scripts, and man page from user directories"
 
 # Phony targets
 .PHONY: all clean up env down build logs test repl install install-user uninstall uninstall-user

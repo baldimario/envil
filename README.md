@@ -54,8 +54,20 @@ RUN envil -c config.yml && rm /bin/envil && rm config.yml
 
 This allows you to validate environment variables before starting your application without adding dependencies to your final image.
 
-## Shell Completion
+## Documentation
 
+### Manual Page
+After installation, view the full documentation with:
+```bash
+man envil
+```
+
+For local development, you can view the uncompressed man page with:
+```bash
+man ./man/man1/envil.1
+```
+
+## Shell Completion
 Envil supports shell completion for bash and zsh. To enable completion:
 
 ### Bash
