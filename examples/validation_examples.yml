@@ -1,0 +1,46 @@
+# Basic numeric validation
+PORT:
+  checks:
+    type: integer
+    gt: 1024
+    lt: 65535
+
+# String enum validation
+LOG_LEVEL:
+  default: "info"
+  checks:
+    type: string
+    enum: debug,info,warn,error
+
+# Float validation with range
+THRESHOLD:
+  default: "0.85"
+  checks:
+    type: float
+    gt: 0
+    lt: 1
+
+# JSON configuration validation
+CONFIG:
+  checks:
+    type: json
+
+# String length validation
+API_KEY:
+  required: true
+  checks:
+    type: string
+    len: 32
+
+# Custom command validation
+GIT_BRANCH:
+  checks:
+    type: string
+    cmd: "test $(git rev-parse --abbrev-ref HEAD) = $GIT_BRANCH"
+
+# Combined validations
+DB_URL:
+  default: "postgresql://localhost:5432/mydb"
+  checks:
+    type: string
+    cmd: "test $(echo $VALUE | cut -d: -f1) = postgresql"

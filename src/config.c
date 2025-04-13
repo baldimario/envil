@@ -13,14 +13,14 @@ struct option check_options[] = {
 };
 
 CheckDefinition checks[] = {
-    {"type", "Check the type of the variable (integer,string,json,float,boolean)", check_mock},
-    {"gt", "Check if greater than a value", check_mock},
-    {"lt", "Check if less than a value", check_mock},
-    {"enum", "Check if in a set of values (foo,bar,baz)", check_mock},
-    {"len", "Check the length of the variable", check_mock},
-    {"cmd", "Run a command to validate the variable", check_mock},
-    {"eq", "Check if equal to a value", check_mock},
-    {"ne", "Check if not equal to a value", check_mock},
+    {"type", "Check the type of the variable (integer,string,json,float,boolean)", check_type},
+    {"gt", "Check if greater than a value", check_gt},
+    {"lt", "Check if less than a value", check_lt},
+    {"enum", "Check if in a set of values (foo,bar,baz)", check_enum},
+    {"len", "Check the length of the variable", check_len},
+    {"cmd", "Run a command to validate the variable", check_cmd},
+    {"eq", "Check if equal to a value", check_mock},  // TODO: Implement check_eq
+    {"ne", "Check if not equal to a value", check_mock},  // TODO: Implement check_ne
 };
 
 struct option base_options[] = {

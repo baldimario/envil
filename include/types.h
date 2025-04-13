@@ -2,6 +2,7 @@
 #define ENVIL_TYPES_H
 
 #include <stdbool.h>
+#include <stddef.h>
 
 typedef enum {
     LOG_DEBUG,
@@ -34,7 +35,10 @@ typedef struct {
         int int_value;
         char* str_value;
         char** enum_values;
-        char* cmd;
+        struct {
+            char* cmd;
+            size_t cmd_len;
+        } cmd_value;
         void* custom_value;
     } value;
 } Check;

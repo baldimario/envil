@@ -71,9 +71,22 @@ int check_enum(const char* value, const void* values) {
     return ENVIL_VALUE_ERROR;
 }
 
-int check_cmd(const char* value, const void* cmd) {
-    if (!value || !cmd) return ENVIL_CUSTOM_ERROR;
+int check_cmd(const char* value, const void* cmd_data) {
+    if (!value || !cmd_data) return ENVIL_CUSTOM_ERROR;
+    
+    const struct {
+        char* cmd;
+        size_t cmd_len;
+    } *cmd_value = cmd_data;
 
+    if (!cmd_value->cmd || !cmd_value->cmd_len) {  // Check for empty command
+        fprintf(stderr, "Empty command provided\n");
+        return ENVIL_CUSTOM_ERROR;
+    }
+
+    // Print command for debugging
+    fprintf(stderr, "Executing command: %s\n", cmd_value->cmd);
+    
     int pipefd[2];
     pid_t pid;
     int status;
@@ -95,24 +108,28 @@ int check_cmd(const char* value, const void* cmd) {
         // Set up environment
         setenv("VALUE", value, 1);
         
+        // Close stdout and stderr before redirecting
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+        
         // Redirect stderr to stdout
-        dup2(STDOUT_FILENO, STDERR_FILENO);
+        dup2(pipefd[1], STDERR_FILENO);
         
         // Redirect stdout to pipe
         dup2(pipefd[1], STDOUT_FILENO);
         
-        // Close unused read end
+        // Close unused pipe ends
         close(pipefd[0]);
 
-        // Execute command through shell
-        execl("/bin/sh", "sh", "-c", (const char*)cmd, NULL);
+        // Execute command through shell with proper args
+        execl("/bin/sh", "sh", "-c", cmd_value->cmd, (char*)NULL);
         
         // If we get here, exec failed
-        fprintf(stderr, "Failed to execute command: %s\n", strerror(errno));
-        exit(1);
+        perror("Failed to execute command");
+        _exit(1);  // Use _exit() in child process
     }
 
-    // Parent process
+    // Parent process continues here
     close(pipefd[1]);  // Close write end
 
     // Read command output
@@ -133,9 +150,12 @@ int check_cmd(const char* value, const void* cmd) {
     }
 
     if (WIFEXITED(status)) {
-        return WEXITSTATUS(status) == 0 ? ENVIL_OK : ENVIL_CUSTOM_ERROR;
+        int exit_code = WEXITSTATUS(status);
+        fprintf(stderr, "Command exited with status: %d\n", exit_code);
+        return exit_code == 0 ? ENVIL_OK : ENVIL_CUSTOM_ERROR;
     }
 
+    fprintf(stderr, "Command did not exit normally\n");
     return ENVIL_CUSTOM_ERROR;
 }
 

@@ -1,0 +1,5 @@
+FOO:
+  checks:
+    type: integer
+    gt: 10
+    lt: 40
