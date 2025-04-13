@@ -10,15 +10,14 @@
 #include "argparse.h"
 #include "types.h"
 #include "validator.h"
-
-LogLevel g_log_level = LOG_INFO;  // Define the global log level with default value
+#include "logger.h"
 
 static void cleanup_options(struct option* options, char* getopt_str) {
     free(options);
     free(getopt_str);
 }
 
-static int handle_env_option(const char* env_name, const char* default_value, bool print_value, int check_count, Check* checks, int first_check_arg) {
+static int handle_env_option(const char* env_name, const char* default_value, bool print_value, int check_count, Check* checks) {
     // Create variable structure with proper const qualifiers
     EnvVariable var;
     var.name = (char*)env_name;  // Cast away const since the struct doesn't expect const
@@ -37,7 +36,7 @@ static int handle_env_option(const char* env_name, const char* default_value, bo
     // Create validation errors structure
     ValidationErrors* errors = create_validation_errors();
     if (!errors) {
-        fprintf(stderr, "Failed to create validation errors structure\n");
+        logger(LOG_ERROR, "Failed to create validation errors structure\n");
         return 1;
     }
 
@@ -63,14 +62,14 @@ static int handle_env_option(const char* env_name, const char* default_value, bo
 
 static int handle_config_option(const char* config_path, bool print_value) {
     if (!config_path) {
-        fprintf(stderr, "Error: No configuration file path provided\n");
+        logger(LOG_ERROR, "Error: No configuration file path provided\n");
         return ENVIL_CONFIG_ERROR;
     }
     
-    fprintf(stderr, "Loading config file: %s\n", config_path);
+    logger(LOG_TRACE, "Loading config file: %s", config_path);
     FILE *config_file = fopen(config_path, "r");
     if (!config_file) {
-        fprintf(stderr, "Error: Cannot open config file: %s\n", config_path);
+        logger(LOG_ERROR, "Error: Cannot open config file: %s\n", config_path);
         return ENVIL_CONFIG_ERROR;
     }
 
@@ -80,7 +79,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
     bool is_json = (ext && strcmp(ext, ".json") == 0);
 
     if (!is_yaml && !is_json) {
-        fprintf(stderr, "Error: Config file must be .yml, .yaml, or .json\n");
+        logger(LOG_ERROR, "Error: Config file must be .yml, .yaml, or .json\n");
         fclose(config_file);
         return ENVIL_CONFIG_ERROR;
     }
@@ -93,7 +92,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
         yaml_document_t document;
 
         if (!yaml_parser_initialize(&parser)) {
-            fprintf(stderr, "Failed to initialize YAML parser\n");
+            logger(LOG_ERROR, "Failed to initialize YAML parser\n");
             fclose(config_file);
             free_validation_errors(errors);
             return ENVIL_CONFIG_ERROR;
@@ -102,7 +101,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
         yaml_parser_set_input_file(&parser, config_file);
 
         if (!yaml_parser_load(&parser, &document)) {
-            fprintf(stderr, "Failed to parse YAML file\n");
+            logger(LOG_ERROR, "Failed to parse YAML file\n");
             yaml_parser_delete(&parser);
             fclose(config_file);
             free_validation_errors(errors);
@@ -111,7 +110,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
 
         yaml_node_t* root = yaml_document_get_root_node(&document);
         if (!root || root->type != YAML_MAPPING_NODE) {
-            fprintf(stderr, "Error: YAML root must be a mapping\n");
+            logger(LOG_ERROR, "Error: YAML root must be a mapping\n");
             yaml_document_delete(&document);
             yaml_parser_delete(&parser);
             fclose(config_file);
@@ -166,7 +165,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
             if (num_checks > 0 && checks_node) {
                 Check* checks = malloc(num_checks * sizeof(Check));
                 if (!checks) {
-                    fprintf(stderr, "Failed to allocate memory for checks\n");
+                    logger(LOG_ERROR, "Failed to allocate memory for checks\n");
                     continue;
                 }
                 var.checks = checks;
@@ -189,7 +188,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
                     const CheckDefinition* check_def = get_check_definition(check_name);
 
                     if (!check_def) {
-                        fprintf(stderr, "Unknown check '%s' for variable '%s'\n", check_name, var_name);
+                        logger(LOG_ERROR, "Unknown check '%s' for variable '%s'\n", check_name, var_name);
                         continue;
                     }
 
@@ -242,7 +241,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
                                 checks[check_index].value.cmd_value.cmd_len = cmd_len;
                             }
                         } else {
-                            fprintf(stderr, "Warning: Empty command for variable '%s'\n", var_name);
+                            logger(LOG_ERROR, "Warning: Empty command for variable '%s'\n", var_name);
                             continue;
                         }
                     }
@@ -304,14 +303,14 @@ static int handle_config_option(const char* config_path, bool print_value) {
 
         char *json_str = malloc(fsize + 1);
         if (!json_str) {
-            fprintf(stderr, "Failed to allocate memory for JSON\n");
+            logger(LOG_ERROR, "Failed to allocate memory for JSON\n");
             fclose(config_file);
             free_validation_errors(errors);
             return ENVIL_CONFIG_ERROR;
         }
 
         if (fread(json_str, 1, fsize, config_file) != (size_t)fsize) {
-            fprintf(stderr, "Failed to read JSON file\n");
+            logger(LOG_ERROR, "Failed to read JSON file\n");
             free(json_str);
             fclose(config_file);
             free_validation_errors(errors);
@@ -323,7 +322,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
         free(json_str);
 
         if (!root || jerr != json_tokener_success) {
-            fprintf(stderr, "Failed to parse JSON: %s\n", json_tokener_error_desc(jerr));
+            logger(LOG_ERROR, "Failed to parse JSON: %s\n", json_tokener_error_desc(jerr));
             if (root) json_object_put(root);
             fclose(config_file);
             free_validation_errors(errors);
@@ -331,7 +330,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
         }
 
         if (json_object_get_type(root) != json_type_object) {
-            fprintf(stderr, "Error: JSON root must be an object\n");
+            logger(LOG_ERROR, "Error: JSON root must be an object\n");
             json_object_put(root);
             fclose(config_file);
             free_validation_errors(errors);
@@ -368,7 +367,7 @@ static int handle_config_option(const char* config_path, bool print_value) {
                 if (num_checks > 0) {
                     Check* checks = malloc(num_checks * sizeof(Check));
                     if (!checks) {
-                        fprintf(stderr, "Failed to allocate memory for checks\n");
+                        logger(LOG_ERROR, "Failed to allocate memory for checks\n");
                         continue;
                     }
                     var.checks = checks;
@@ -509,11 +508,12 @@ int main(int argc, char **argv) {
     char *default_value = NULL;
     char *config_path = NULL;
     bool print_value = false;
+    int verbosity = 0;  // Count of -v flags
 
     // Pre-allocate checks array
     Check *checks = malloc((argc / 2) * sizeof(Check)); // Maximum possible number of checks
     if (!checks) {
-        fprintf(stderr, "Failed to allocate memory for checks\n");
+        logger(LOG_ERROR, "Failed to allocate memory for checks\n");
         return 1;
     }
     int check_count = 0;
@@ -521,7 +521,7 @@ int main(int argc, char **argv) {
 
     struct option* long_options = create_long_options();
     if (!long_options) {
-        fprintf(stderr, "Failed to create options\n");
+        logger(LOG_ERROR, "Failed to create options\n");
         free(checks);
         return 1;
     }
@@ -530,15 +530,45 @@ int main(int argc, char **argv) {
     if (!getopt_str) {
         free(long_options);
         free(checks);
-        fprintf(stderr, "Failed to create getopt string\n");
+        logger(LOG_ERROR, "Failed to create getopt string\n");
         return 1;
     }
 
+    // Reset getopt to allow multiple passes
+    optind = 1;
+
+    // First pass - count verbosity flags
+    while ((option = getopt_long(argc, argv, getopt_str, long_options, &option_index)) != -1) {
+        if (option == 'v') {
+            verbosity++;
+        }
+    }
+
+    // Set log level based on verbosity count
+    switch (verbosity) {
+        case 0:
+            g_log_level = LOG_ERROR;  // Default - only errors
+            break;
+        case 1:
+            g_log_level = LOG_INFO;   // -v - standard info
+            break;
+        case 2:
+            g_log_level = LOG_DEBUG;  // -vv - debug info
+            break;
+        default:
+            g_log_level = LOG_ERROR;  // -vvv or more - trace level
+            break;
+    }
+
+    // Reset getopt for main option parsing
+    optind = 1;
+
+    // Main option parsing
     while ((option = getopt_long(argc, argv, getopt_str, long_options, &option_index)) != -1) {
         switch (option) {
         case 'c':
             has_config = true;
-            config_path = optarg;  // Store the config file path
+            config_path = optarg;
             break;
         case 'e':
             has_env = true;
@@ -556,7 +586,7 @@ int main(int argc, char **argv) {
             free(checks);
             return 0;
         case 'v':
-            g_log_level = LOG_DEBUG;
+            // Already handled in first pass
             break;
         case 'h':
         case '?':
@@ -600,7 +630,7 @@ int main(int argc, char **argv) {
                     
                     char** values = malloc((count + 1) * sizeof(char*));
                     if (!values) {
-                        fprintf(stderr, "Failed to allocate memory for enum values\n");
+                        logger(LOG_ERROR, "Failed to allocate memory for enum values\n");
                         free(enum_copy);
                         cleanup_options(long_options, getopt_str);
                         free(checks);
@@ -665,7 +695,7 @@ int main(int argc, char **argv) {
             }
         }
         
-        int result = handle_env_option(env_name, default_value, print_value, var_check_count, var_checks, optind);
+        int result = handle_env_option(env_name, default_value, print_value, var_check_count, var_checks);
         
         // Clean up
         if (var_checks) {

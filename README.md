@@ -128,6 +128,20 @@ envil -e API_KEY --type string --len 32
 envil -e GIT_BRANCH --cmd "git rev-parse --verify HEAD"
 ```
 
+#### Try Example Cases
+Run the examples script to see various validation scenarios in action:
+```bash
+./examples/examples.sh
+```
+
+This script demonstrates:
+- Handling missing environment variables
+- Using default values
+- Type validation
+- Numeric range validation
+- Configuration file validation with both YAML and JSON
+- Multiple variable validation at once
+
 ### Configuration File
 
 You can specify multiple validations in a YAML or JSON configuration file:

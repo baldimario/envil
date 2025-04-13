@@ -2,6 +2,7 @@
 #include "checks.h"
 #include "types.h"
 #include "config.h"
+#include "logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +19,7 @@ struct option* get_check_options(CheckDefinition checks[], int count) {
 
     struct option* options = calloc(count + 1, sizeof(struct option));
     if (!options) {
-        fprintf(stderr, "Memory allocation failed for check options\n");
+        logger(LOG_ERROR, "Memory allocation failed for check options\n");
         return NULL;
     }
 
@@ -44,7 +45,7 @@ struct option* create_long_options() {
     // Allocate space for the combined array (+1 for NULL terminator)
     struct option* long_options = calloc(num_base + num_checks + 1, sizeof(struct option));
     if (!long_options) {
-        fprintf(stderr, "Memory allocation failed for long options\n");
+        logger(LOG_ERROR, "Memory allocation failed for long options\n");
         return NULL;
     }
 
@@ -71,7 +72,7 @@ struct option* create_long_options() {
 char* get_getopt_long_string() {
     char* getopt_str = calloc(256, sizeof(char));
     if (!getopt_str) {
-        fprintf(stderr, "Memory allocation failed for getopt string\n");
+        logger(LOG_ERROR, "Memory allocation failed for getopt string\n");
         return NULL;
     }
 
@@ -94,9 +95,9 @@ char* get_getopt_long_string() {
  * Lists all available checks with their descriptions.
  */
 void list_checks() {
-    printf("Available checks:\n");
+    fprintf(stderr, "Available checks:\n");
     for (size_t i = 0; i < get_check_options_count(); i++) {
-        printf("  --%s: %s\n", checks[i].name, checks[i].description);
+        fprintf(stderr, "  --%s: %s\n", checks[i].name, checks[i].description);
     }
 }
 

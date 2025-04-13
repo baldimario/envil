@@ -1,5 +1,8 @@
 #include "types.h"
 
+// Define the global log level with default value
+LogLevel g_log_level = LOG_ERROR;
+
 const char* get_type_name(EnvType type) {
     switch (type) {
         case TYPE_STRING:

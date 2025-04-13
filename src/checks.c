@@ -10,6 +10,7 @@
 #include "config.h"
 #include "validator.h"
 #include "checks.h"
+#include "logger.h"
 
 int check_mock(const char* value, const void* param) {
     printf("Mock check called with value: %s and param: %s\n", value, (char*) param);
@@ -85,7 +86,7 @@ int check_cmd(const char* value, const void* cmd_data) {
     }
 
     // Print command for debugging
-    fprintf(stderr, "Executing command: %s\n", cmd_value->cmd);
+    logger(LOG_INFO, "Executing command: %s", cmd_value->cmd);
     
     int pipefd[2];
     pid_t pid;
@@ -151,7 +152,7 @@ int check_cmd(const char* value, const void* cmd_data) {
 
     if (WIFEXITED(status)) {
         int exit_code = WEXITSTATUS(status);
-        fprintf(stderr, "Command exited with status: %d\n", exit_code);
+        logger(LOG_INFO, "Command exited with status: %d", exit_code);
         return exit_code == 0 ? ENVIL_OK : ENVIL_CUSTOM_ERROR;
     }
 

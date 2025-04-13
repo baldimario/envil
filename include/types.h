@@ -5,12 +5,12 @@
 #include <stddef.h>
 
 typedef enum {
-    LOG_DEBUG,
-    LOG_INFO,
-    LOG_WARN,
-    LOG_ERROR,
-    LOG_FATAL,
-    LOG_NONE
+    LOG_NONE,      // No logging
+    LOG_ERROR,     // Error messages only
+    LOG_WARNING,   // Warnings and errors
+    LOG_INFO,      // Standard info, warnings, and errors
+    LOG_DEBUG,     // Detailed debug info
+    LOG_TRACE      // Most verbose level
 } LogLevel;
 
 typedef enum {
