@@ -19,6 +19,41 @@ A lightweight C-based CLI tool for environment variable validation and managemen
 - Error reporting with descriptive messages
 - Exit codes for CI/CD integration
 
+## CI/CD Pipeline Integration
+
+Envil is particularly valuable in CI/CD pipelines where environment validation before deployment is critical. By validating environment variables early in the pipeline, you can:
+
+- Catch configuration errors before starting resource-intensive build processes
+- Prevent failed deployments due to missing or incorrect environment variables
+- Save time and compute resources by failing fast when configurations are invalid
+- Ensure consistent environments across different deployment stages
+
+Example in a CI pipeline:
+```bash
+# Validate all required environment variables before building
+envil -c config.yml || {
+    echo "Environment validation failed. Aborting build."
+    exit 1
+}
+
+# Proceed with build process only if validation passes
+npm run build
+```
+
+### Docker Integration
+
+You can easily include Envil in your Docker images using multi-stage builds:
+
+```dockerfile
+# Add Envil to your image and check
+COPY --from=baldimario/envil /bin/envil /bin/envil
+COPY config.yml config.yml
+# This will fail with validation errors
+RUN envil -c config.yml && rm /bin/envil && rm config.yml
+```
+
+This allows you to validate environment variables before starting your application without adding dependencies to your final image.
+
 ## Dependencies
 
 The project requires the following libraries:
