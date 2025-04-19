@@ -27,6 +27,9 @@ typedef struct {
     const char* name;
     const char* description;
     CheckFunction callback;
+    void* custom_data;
+    int has_arg;
+    const char* error_message;
 } CheckDefinition;
 
 typedef struct {
@@ -77,5 +80,6 @@ typedef enum {
 extern LogLevel g_log_level;
 
 const char* get_type_name(EnvType type);
+const char* get_error_message(const CheckDefinition* check_def);
 
 #endif // ENVIL_TYPES_H

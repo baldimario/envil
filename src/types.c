@@ -19,3 +19,7 @@ const char* get_type_name(EnvType type) {
             return "unknown";
     }
 }
+
+const char* get_error_message(const CheckDefinition* check_def) {
+    return check_def->error_message;
+}

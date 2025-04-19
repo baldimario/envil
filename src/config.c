@@ -10,17 +10,27 @@ struct option check_options[] = {
     {"cmd", required_argument, 0, 0},
     {"eq", required_argument, 0, 0},
     {"ne", required_argument, 0, 0},
+    {"ge", required_argument, 0, 0},
+    {"le", required_argument, 0, 0},
+    {"lengt", required_argument, 0, 0},
+    {"lenlt", required_argument, 0, 0},
+    {"regex", required_argument, 0, 0},
 };
 
 CheckDefinition checks[] = {
-    {"type", "Check the type of the variable (integer,string,json,float,boolean)", check_type},
-    {"gt", "Check if greater than a value", check_gt},
-    {"lt", "Check if less than a value", check_lt},
-    {"enum", "Check if in a set of values (foo,bar,baz)", check_enum},
-    {"len", "Check the length of the variable", check_len},
-    {"cmd", "Run a command to validate the variable", check_cmd},
-    {"eq", "Check if equal to a value", check_mock},  // TODO: Implement check_eq
-    {"ne", "Check if not equal to a value", check_mock},  // TODO: Implement check_ne
+    {"type", "Check the type of the variable (integer,string,json,float,boolean)", check_type, NULL, 1, "Invalid type"},
+    {"gt", "Check if greater than a value", check_gt, NULL, 1, "Invalid length"},
+    {"lt", "Check if less than a value", check_lt, NULL, 1, "Invalid length"},
+    {"enum", "Check if in a set of values (foo,bar,baz)", check_enum, NULL, 1, "Invalid enum value"},
+    {"len", "Check the length of the variable", check_len, NULL, 1, "Invalid length"},
+    {"cmd", "Run a command to validate the variable", check_cmd, NULL, 1, "Invalid command"},
+    {"eq", "Check if equal to a value", check_eq, NULL, 1, "Invalid target"},
+    {"ne", "Check if not equal to a value", check_ne, NULL, 1, "Invalid target"},
+    {"ge", "Check if greater than or equal to a value", check_ge, NULL, 1, "Invalid length"},
+    {"le", "Check if less than or equal to a value", check_le, NULL, 1, "Invalid length"},
+    {"lengt", "Check if string length is greater than specified length", check_lengt, NULL, 1, "Invalid length"},
+    {"lenlt", "Check if string length is less than specified length", check_lenlt, NULL, 1, "Invalid length"},
+    {"regex", "Check if value matches regular expression pattern", check_regex, NULL, 1, "Invalid pattern"},
 };
 
 struct option base_options[] = {

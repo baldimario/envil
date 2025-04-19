@@ -168,7 +168,9 @@ void test_check_registry() {
     const CheckDefinition *new_check = register_check(
         "test_check",
         "Test check description",
-        dummy_fn
+        dummy_fn,
+        NULL,  // custom_data
+        1      // has_arg
     );
     assert(new_check != NULL);
     assert(strcmp(new_check->name, "test_check") == 0);
@@ -183,6 +185,118 @@ void test_check_registry() {
     printf("check registry tests passed!\n");
 }
 
+void test_check_eq() {
+    printf("Testing check_eq...\n");
+    
+    // Test integer equality
+    int value = 42;
+    assert(check_eq("42", &value) == ENVIL_OK);
+    assert(check_eq("41", &value) == ENVIL_VALUE_ERROR);
+    assert(check_eq("43", &value) == ENVIL_VALUE_ERROR);
+    assert(check_eq("abc", &value) == ENVIL_VALUE_ERROR);
+    
+    // Test negative numbers
+    value = -10;
+    assert(check_eq("-10", &value) == ENVIL_OK);
+    assert(check_eq("-11", &value) == ENVIL_VALUE_ERROR);
+    
+    // Test zero
+    value = 0;
+    assert(check_eq("0", &value) == ENVIL_OK);
+    assert(check_eq("-1", &value) == ENVIL_VALUE_ERROR);
+    assert(check_eq("1", &value) == ENVIL_VALUE_ERROR);
+    
+    printf("check_eq tests passed!\n");
+}
+
+void test_check_ne() {
+    printf("Testing check_ne...\n");
+    
+    // Test integer inequality
+    int value = 42;
+    assert(check_ne("41", &value) == ENVIL_OK);
+    assert(check_ne("43", &value) == ENVIL_OK);
+    assert(check_ne("42", &value) == ENVIL_VALUE_ERROR);
+    assert(check_ne("abc", &value) == ENVIL_VALUE_ERROR);
+    
+    // Test negative numbers
+    value = -10;
+    assert(check_ne("-11", &value) == ENVIL_OK);
+    assert(check_ne("-10", &value) == ENVIL_VALUE_ERROR);
+    
+    // Test zero
+    value = 0;
+    assert(check_ne("1", &value) == ENVIL_OK);
+    assert(check_ne("-1", &value) == ENVIL_OK);
+    assert(check_ne("0", &value) == ENVIL_VALUE_ERROR);
+    
+    printf("check_ne tests passed!\n");
+}
+
+void test_check_lengt() {
+    printf("Testing check_lengt...\n");
+    
+    // Test length greater than
+    size_t length = 3;
+    assert(check_lengt("abcd", &length) == ENVIL_OK);
+    assert(check_lengt("abcde", &length) == ENVIL_OK);
+    assert(check_lengt("abc", &length) == ENVIL_VALUE_ERROR);
+    assert(check_lengt("ab", &length) == ENVIL_VALUE_ERROR);
+    
+    // Test with zero length
+    length = 0;
+    assert(check_lengt("a", &length) == ENVIL_OK);
+    assert(check_lengt("abc", &length) == ENVIL_OK);
+    assert(check_lengt("", &length) == ENVIL_VALUE_ERROR);
+    
+    printf("check_lengt tests passed!\n");
+}
+
+void test_check_lenlt() {
+    printf("Testing check_lenlt...\n");
+    
+    // Test length less than
+    size_t length = 3;
+    assert(check_lenlt("a", &length) == ENVIL_OK);
+    assert(check_lenlt("ab", &length) == ENVIL_OK);
+    assert(check_lenlt("abc", &length) == ENVIL_VALUE_ERROR);
+    assert(check_lenlt("abcd", &length) == ENVIL_VALUE_ERROR);
+    
+    // Test with zero length
+    length = 1;
+    assert(check_lenlt("", &length) == ENVIL_OK);
+    assert(check_lenlt("a", &length) == ENVIL_VALUE_ERROR);
+    assert(check_lenlt("ab", &length) == ENVIL_VALUE_ERROR);
+    
+    printf("check_lenlt tests passed!\n");
+}
+
+void test_check_regex() {
+    printf("Testing check_regex...\n");
+    
+    // Test basic patterns
+    const char* pattern = "^foo.*$";
+    assert(check_regex("foo", pattern) == ENVIL_OK);
+    assert(check_regex("foobar", pattern) == ENVIL_OK);
+    assert(check_regex("bar", pattern) == ENVIL_VALUE_ERROR);
+    
+    // Test more complex patterns
+    pattern = "^[A-Za-z0-9]+$";
+    assert(check_regex("abc123", pattern) == ENVIL_OK);
+    assert(check_regex("ABC123", pattern) == ENVIL_OK);
+    assert(check_regex("abc-123", pattern) == ENVIL_VALUE_ERROR);
+    assert(check_regex("", pattern) == ENVIL_VALUE_ERROR);
+    
+    // Test email pattern
+    pattern = "^[^@]+@[^@]+\\.[^@]+$";
+    assert(check_regex("test@example.com", pattern) == ENVIL_OK);
+    assert(check_regex("test.name@example.co.uk", pattern) == ENVIL_OK);
+    assert(check_regex("invalid-email", pattern) == ENVIL_VALUE_ERROR);
+    assert(check_regex("@example.com", pattern) == ENVIL_VALUE_ERROR);
+    
+    printf("check_regex tests passed!\n");
+}
+
 int main() {
     printf("Running check function tests...\n\n");
     
@@ -192,7 +306,11 @@ int main() {
     test_check_len();
     test_check_enum();
     test_check_cmd();
-    test_check_registry();
+    test_check_eq();
+    test_check_ne();
+    test_check_lengt();
+    test_check_lenlt();
+    test_check_regex();
     
     printf("\nAll check function tests passed!\n");
     return 0;

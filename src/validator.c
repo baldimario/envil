@@ -68,6 +68,33 @@ int validate_check(const Check *check, const char *value) {
     if (strcmp(check->definition->name, "enum") == 0) {
         return check->definition->callback(value, check->value.enum_values);
     }
+    if (strcmp(check->definition->name, "cmd") == 0) {
+        return check->definition->callback(value, &check->value.cmd_value);
+    }
+    if (strcmp(check->definition->name, "type") == 0) {
+        return check->definition->callback(value, &check->value.int_value);
+    }
+    if (strcmp(check->definition->name, "len") == 0) {
+        return check->definition->callback(value, &check->value.int_value);
+    }
+    if (strcmp(check->definition->name, "gt") == 0 || strcmp(check->definition->name, "lt") == 0) {
+        return check->definition->callback(value, &check->value.int_value);
+    }
+    if (strcmp(check->definition->name, "eq") == 0 || strcmp(check->definition->name, "ne") == 0) {
+        return check->definition->callback(value, check->value.str_value);
+    }
+    if (strcmp(check->definition->name, "lengt") == 0 || strcmp(check->definition->name, "lenlt") == 0) {
+        return check->definition->callback(value, &check->value.str_value);
+    }
+    if (strcmp(check->definition->name, "regex") == 0) {
+        return check->definition->callback(value, check->value.str_value);
+    }
+    if (strcmp(check->definition->name, "ge") == 0 || strcmp(check->definition->name, "le") == 0) {
+        return check->definition->callback(value, &check->value.int_value);
+    }
+    if (strcmp(check->definition->name, "regex") == 0) {
+        return check->definition->callback(value, &check->value.str_value);
+    }
     return check->definition->callback(value, &check->value);
 }
 
@@ -128,8 +155,18 @@ int validate_variable(const EnvVariable *var, const char *value) {
                     logger(LOG_INFO, " (value must be greater than %d)", check->value.int_value);
                 } else if (strcmp(check->definition->name, "lt") == 0) {
                     logger(LOG_INFO, " (value must be less than %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "eq") == 0) {
+                    logger(LOG_INFO, " (value must be equal to %s)", check->value.str_value);
+                } else if (strcmp(check->definition->name, "ne") == 0) {
+                    logger(LOG_INFO, " (value must not be equal to %s)", check->value.str_value);
                 } else if (strcmp(check->definition->name, "len") == 0) {
                     logger(LOG_INFO, " (length must be exactly %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "lengt") == 0) {
+                    logger(LOG_INFO, " (length must be greater than %s)", check->value.str_value);
+                } else if (strcmp(check->definition->name, "lenlt") == 0) {
+                    logger(LOG_INFO, " (length must be less than %s)", check->value.str_value);
+                } else if (strcmp(check->definition->name, "regex") == 0) {
+                    logger(LOG_INFO, " (value must match pattern: %s)", check->value.str_value);
                 } else if (strcmp(check->definition->name, "enum") == 0) {
                     logger(LOG_INFO, " (allowed values: ");
                     char **values = check->value.enum_values;
@@ -214,8 +251,18 @@ int validate_variable_with_errors(const EnvVariable *var, const char *value, Val
                     snprintf(message + strlen(message), sizeof(message) - strlen(message), " (value must be greater than %d)", check->value.int_value);
                 } else if (strcmp(check->definition->name, "lt") == 0) {
                     snprintf(message + strlen(message), sizeof(message) - strlen(message), " (value must be less than %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "eq") == 0) {
+                    snprintf(message + strlen(message), sizeof(message) - strlen(message), " (value must be equal to %s)", check->value.str_value);
+                } else if (strcmp(check->definition->name, "ne") == 0) {
+                    snprintf(message + strlen(message), sizeof(message) - strlen(message), " (value must not be equal to %s)", check->value.str_value);
                 } else if (strcmp(check->definition->name, "len") == 0) {
                     snprintf(message + strlen(message), sizeof(message) - strlen(message), " (length must be exactly %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "lengt") == 0) {
+                    snprintf(message + strlen(message), sizeof(message) - strlen(message), " (length must be greater than %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "lenlt") == 0) {
+                    snprintf(message + strlen(message), sizeof(message) - strlen(message), " (length must be less than %d)", check->value.int_value);
+                } else if (strcmp(check->definition->name, "regex") == 0) {
+                    snprintf(message + strlen(message), sizeof(message) - strlen(message), " (value must match pattern: %s)", check->value.str_value);
                 } else if (strcmp(check->definition->name, "enum") == 0) {
                     strcat(message, " (allowed values: ");
                     char **values = check->value.enum_values;

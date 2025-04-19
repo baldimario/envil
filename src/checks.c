@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <regex.h>
 #include "types.h"
 #include "config.h"
 #include "validator.h"
@@ -20,10 +21,12 @@ int check_mock(const char* value, const void* param) {
 
 #define MAX_CHECKS 32
 
-static struct {
+typedef struct {
     CheckDefinition definitions[MAX_CHECKS];
     int count;
-} registry = {0};
+} CheckRegistry;
+
+static CheckRegistry registry = {0};
 
 // Helper function for numeric comparisons
 static bool parse_numeric_value(const char* value, double* result) {
@@ -160,24 +163,80 @@ int check_cmd(const char* value, const void* cmd_data) {
     return ENVIL_CUSTOM_ERROR;
 }
 
+int check_eq(const char* value, const void* target) {
+    if (!value || !target) return ENVIL_VALUE_ERROR;
+    return strcmp(value, (const char*)target) == 0 ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_ne(const char* value, const void* target) {
+    if (!value || !target) return ENVIL_VALUE_ERROR;
+    return strcmp(value, (const char*)target) != 0 ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_ge(const char* value, const void* threshold) {
+    double val, threshold_val = *(int*)threshold;
+    if (!parse_numeric_value(value, &val)) {
+        return ENVIL_VALUE_ERROR;
+    }
+    return val >= threshold_val ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_le(const char* value, const void* threshold) {
+    double val, threshold_val = *(int*)threshold;
+    if (!parse_numeric_value(value, &val)) {
+        return ENVIL_VALUE_ERROR;
+    }
+    return val <= threshold_val ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_lengt(const char* value, const void* length) {
+    return strlen(value) > *(size_t*)length ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_lenlt(const char* value, const void* length) {
+    return strlen(value) < *(size_t*)length ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
+int check_regex(const char* value, const void* pattern) {
+    if (!value || !pattern) return ENVIL_VALUE_ERROR;
+    
+    regex_t regex;
+    int ret = regcomp(&regex, (const char*)pattern, REG_EXTENDED | REG_NOSUB);
+    if (ret != 0) {
+        char error_buf[100];
+        regerror(ret, &regex, error_buf, sizeof(error_buf));
+        logger(LOG_ERROR, "Failed to compile regex: %s", error_buf);
+        return ENVIL_VALUE_ERROR;
+    }
+    
+    ret = regexec(&regex, value, 0, NULL, 0);
+    regfree(&regex);
+    
+    return ret == 0 ? ENVIL_OK : ENVIL_VALUE_ERROR;
+}
+
 // Initialize built-in checks
 __attribute__((constructor))
 static void init_registry(void) {
-    register_check("type", "Validates value matches specified type (string|integer|json|float)", check_type);
-    register_check("gt", "Checks if numeric value is greater than specified threshold", check_gt);
-    register_check("lt", "Checks if numeric value is less than specified threshold", check_lt);
-    register_check("len", "Validates string length matches exactly", check_len);
-    register_check("enum", "Validates value is one of specified options", check_enum);
-    register_check("cmd", "Runs custom shell command for validation", check_cmd);
+    int checks_count = get_check_options_count();
+    for (int i = 0; i < checks_count; i++) {
+        const CheckDefinition* def = get_check_definition_by_index(i);
+        if (def) {
+            register_check(def->name, def->description, def->callback, def->custom_data, def->has_arg, def->error_message);
+        }
+    }
 }
 
-const CheckDefinition* register_check(const char* name, const char* description, CheckFunction check_fn) {
+const CheckDefinition* register_check(const char* name, const char* description, CheckFunction check_fn, void* custom_data, int has_arg, const char* error_message) {
     if (registry.count >= MAX_CHECKS) return NULL;
     
     CheckDefinition* def = &registry.definitions[registry.count++];
     def->name = name;
     def->description = description;
     def->callback = check_fn;
+    def->custom_data = custom_data;
+    def->has_arg = has_arg;
+    def->error_message = error_message;
     
     return def;
 }

@@ -206,6 +206,14 @@ static int handle_config_option(const char* config_path, bool print_value) {
                     else if (strcmp(check_name, "gt") == 0 || strcmp(check_name, "lt") == 0) {
                         checks[check_index].value.int_value = atoi(check_val);
                     }
+                    else if (strcmp(check_name, "eq") == 0 || strcmp(check_name, "ne") == 0) {
+                        checks[check_index].value.str_value = strdup(check_val);
+                        if (!checks[check_index].value.str_value) {
+                            logger(LOG_ERROR, "Failed to allocate memory for string value\n");
+                            free(var.checks);
+                            return ENVIL_CONFIG_ERROR;
+                        }
+                    }
                     else if (strcmp(check_name, "len") == 0) {
                         checks[check_index].value.int_value = atoi(check_val);
                     }
@@ -396,6 +404,14 @@ static int handle_config_option(const char* config_path, bool print_value) {
                         else if (strcmp(check_name, "gt") == 0 || strcmp(check_name, "lt") == 0) {
                             checks[check_index].value.int_value = atoi(check_val);
                         }
+                        else if (strcmp(check_name, "eq") == 0 || strcmp(check_name, "ne") == 0) {
+                            checks[check_index].value.str_value = strdup(check_val);
+                            if (!checks[check_index].value.str_value) {
+                                logger(LOG_ERROR, "Failed to allocate memory for string value\n");
+                                free(var.checks);
+                                return ENVIL_CONFIG_ERROR;
+                            }
+                        }
                         else if (strcmp(check_name, "len") == 0) {
                             checks[check_index].value.int_value = atoi(check_val);
                         }
@@ -535,9 +551,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Reset getopt to allow multiple passes
-    optind = 1;
-
     // First pass - count verbosity flags
     while ((option = getopt_long(argc, argv, getopt_str, long_options, &option_index)) != -1) {
         if (option == 'v') {
@@ -562,9 +575,10 @@ int main(int argc, char **argv) {
     }
 
     // Reset getopt for main option parsing
-    optind = 1;
+    optind = 1;  // Reset to beginning of arguments
+    opterr = 1;  // Enable error messages
 
-    // Main option parsing
+    // Remove debug logging that was causing issues
     while ((option = getopt_long(argc, argv, getopt_str, long_options, &option_index)) != -1) {
         switch (option) {
         case 'C': {
@@ -628,11 +642,31 @@ int main(int argc, char **argv) {
                     }
                     checks[check_count].value.int_value = var_type;
                 }
-                else if (strcmp(check_name, "gt") == 0 || strcmp(check_name, "lt") == 0) {
+                else if (strcmp(check_name, "gt") == 0 || strcmp(check_name, "lt") == 0 ||
+                         strcmp(check_name, "ge") == 0 || strcmp(check_name, "le") == 0) {
                     checks[check_count].value.int_value = atoi(optarg);
                 }
-                else if (strcmp(check_name, "len") == 0) {
+                else if (strcmp(check_name, "eq") == 0 || strcmp(check_name, "ne") == 0) {
+                    checks[check_count].value.str_value = strdup(optarg);
+                    if (!checks[check_count].value.str_value) {
+                        logger(LOG_ERROR, "Failed to allocate memory for string value\n");
+                        cleanup_options(long_options, getopt_str);
+                        free(checks);
+                        return 1;
+                    }
+                }
+                else if (strcmp(check_name, "len") == 0 || strcmp(check_name, "lengt") == 0 ||
+                         strcmp(check_name, "lenlt") == 0) {
                     checks[check_count].value.int_value = atoi(optarg);
+                }
+                else if (strcmp(check_name, "regex") == 0) {
+                    checks[check_count].value.str_value = strdup(optarg);
+                    if (!checks[check_count].value.str_value) {
+                        logger(LOG_ERROR, "Failed to allocate memory for regex pattern\n");
+                        cleanup_options(long_options, getopt_str);
+                        free(checks);
+                        return 1;
+                    }
                 }
                 else if (strcmp(check_name, "enum") == 0) {
                     char* enum_copy = strdup(optarg);
@@ -699,6 +733,14 @@ int main(int argc, char **argv) {
 
     // Handle single environment variable validation
     if (has_env) {
+        // Verify that env_name is provided
+        if (!env_name) {
+            fprintf(stderr, "Error: No environment variable name provided with -e option\n");
+            cleanup_options(long_options, getopt_str);
+            free(checks);
+            return 1;
+        }
+
         // Set up variable with checks before calling handle_env_option
         Check *var_checks = NULL;
         int var_check_count = 0;

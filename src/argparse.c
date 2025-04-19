@@ -76,7 +76,7 @@ char* get_getopt_long_string() {
         return NULL;
     }
 
-    const char* valid_options = "cepvlhC:d:"; // Added F: for format-completion
+    const char* valid_options = "c:e:pvlhC:d:"; // Colon after options that require arguments
 
     // Copy valid options to getopt string
     strcpy(getopt_str, valid_options);

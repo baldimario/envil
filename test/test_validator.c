@@ -85,7 +85,9 @@ void test_check_registry() {
     const CheckDefinition *new_check = register_check(
         "test_check",
         "Test check description",
-        check_mock
+        check_mock,
+        (void*)NULL,
+        1
     );
     assert(new_check != NULL);
     assert(strcmp(new_check->name, "test_check") == 0);
