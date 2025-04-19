@@ -44,3 +44,35 @@ DB_URL:
   checks:
     type: string
     cmd: "test $(echo $VALUE | cut -d: -f1) = postgresql"
+
+# Version validation with exact match
+VERSION:
+  required: true
+  checks:
+    type: string
+    regex: "^\\d+\\.\\d+\\.\\d+$"  # Semantic version format
+    eq: "2.0.0"                     # Must match exactly
+
+# Password validation with multiple rules
+PASSWORD:
+  required: true
+  checks:
+    type: string
+    lengt: 7   # At least 8 characters
+    lenlt: 33  # At most 32 characters
+    regex: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"  # Must contain letters and numbers
+
+# Temperature range with inclusive bounds
+TEMPERATURE:
+  checks:
+    type: float
+    ge: -10.0  # Greater than or equal to -10
+    le: 40.0   # Less than or equal to 40
+
+# Email validation
+EMAIL:
+  required: true
+  checks:
+    type: string
+    regex: "^[^@]+@[^@]+\\.[^@]+$"
+    ne: "test@example.com"  # Must not be the example email

@@ -54,6 +54,27 @@ Check if numeric value is less than specified threshold
 .BR \-\-len =\fINUMBER\fR
 Validate string length matches exactly
 .TP
+.BR \-\-lengt =\fINUMBER\fR
+Validate string length is greater than specified number
+.TP
+.BR \-\-lenlt =\fINUMBER\fR
+Validate string length is less than specified number
+.TP
+.BR \-\-eq =\fIVALUE\fR
+Check if value equals specified value
+.TP
+.BR \-\-ne =\fIVALUE\fR
+Check if value does not equal specified value
+.TP
+.BR \-\-ge =\fINUMBER\fR
+Check if numeric value is greater than or equal to specified threshold
+.TP
+.BR \-\-le =\fINUMBER\fR
+Check if numeric value is less than or equal to specified threshold
+.TP
+.BR \-\-regex =\fIPATTERN\fR
+Validate value matches specified regular expression pattern
+.TP
 .BR \-\-enum =\fIVALUES\fR
 Validate value is one of specified comma-separated options
 .TP
@@ -74,6 +95,30 @@ Validate LOG_LEVEL with enum values:
 .nf
 .RS
 envil -e LOG_LEVEL --enum "debug,info,warn,error"
+.RE
+.fi
+.PP
+Validate a string with regex pattern:
+.PP
+.nf
+.RS
+envil -e EMAIL --regex "^[^@]+@[^@]+\\.[^@]+$"
+.RE
+.fi
+.PP
+Validate version number equality:
+.PP
+.nf
+.RS
+envil -e VERSION --eq "1.0.0"
+.RE
+.fi
+.PP
+Validate password length between 8 and 32 characters:
+.PP
+.nf
+.RS
+envil -e PASSWORD --lengt 7 --lenlt 33
 .RE
 .fi
 .PP
@@ -134,6 +179,20 @@ LOG_LEVEL:
   checks:
     type: string
     enum: debug,info,warn,error
+
+PASSWORD:
+  required: true
+  checks:
+    type: string
+    lengt: 7  # minimum 8 characters
+    lenlt: 33 # maximum 32 characters
+    regex: "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$"
+
+VERSION:
+  checks:
+    type: string
+    regex: "^\\d+\\.\\d+\\.\\d+$"
+    eq: "2.0.0"
 .RE
 .fi
 .SH AUTHOR

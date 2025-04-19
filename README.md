@@ -12,8 +12,8 @@ A lightweight C-based CLI tool for environment variable validation and managemen
 - Validate environment variables through CLI or configuration files (YAML/JSON)
 - Multiple validation types:
   - Type checking (string, integer, float, json)
-  - Numeric comparisons (gt, lt)
-  - String validation (length, enum)
+  - Numeric comparisons (gt, lt, ge, le, eq, ne)
+  - String validation (length, lengt, lenlt, enum, regex)
   - Custom validation via shell commands
 - Default values support
 - Error reporting with descriptive messages
