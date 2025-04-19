@@ -134,17 +134,30 @@ void test_check_cmd() {
     printf("Testing check_cmd...\n");
     
     // Test successful command
-    assert(check_cmd("test", "exit 0") == ENVIL_OK);
+    struct {
+        char* cmd;
+        size_t cmd_len;
+    } cmd_value = {
+        .cmd = "exit 0",
+        .cmd_len = strlen("exit 0")
+    };
+    assert(check_cmd("test", &cmd_value) == ENVIL_OK);
     
     // Test failing command
-    assert(check_cmd("test", "exit 1") == ENVIL_CUSTOM_ERROR);
+    cmd_value.cmd = "exit 1";
+    cmd_value.cmd_len = strlen("exit 1");
+    assert(check_cmd("test", &cmd_value) == ENVIL_CUSTOM_ERROR);
     
     // Test command that checks the value
-    assert(check_cmd("123", "test \"$VALUE\" = \"123\"") == ENVIL_OK);
-    assert(check_cmd("456", "test \"$VALUE\" = \"123\"") == ENVIL_CUSTOM_ERROR);
+    cmd_value.cmd = "test \"$VALUE\" = \"123\"";
+    cmd_value.cmd_len = strlen(cmd_value.cmd);
+    assert(check_cmd("123", &cmd_value) == ENVIL_OK);
+    assert(check_cmd("456", &cmd_value) == ENVIL_CUSTOM_ERROR);
     
     // Test invalid command
-    assert(check_cmd("test", "nonexistentcommand") == ENVIL_CUSTOM_ERROR);
+    cmd_value.cmd = "nonexistentcommand";
+    cmd_value.cmd_len = strlen("nonexistentcommand");
+    assert(check_cmd("test", &cmd_value) == ENVIL_CUSTOM_ERROR);
     
     printf("check_cmd tests passed!\n");
 }

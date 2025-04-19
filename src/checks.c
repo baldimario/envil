@@ -218,12 +218,12 @@ int check_regex(const char* value, const void* pattern) {
 // Initialize built-in checks
 __attribute__((constructor))
 static void init_registry(void) {
-    int checks_count = get_check_options_count();
+    // Register checks directly from the checks array
+    extern CheckDefinition checks[];
+    size_t checks_count = get_check_options_count();
     for (int i = 0; i < checks_count; i++) {
-        const CheckDefinition* def = get_check_definition_by_index(i);
-        if (def) {
-            register_check(def->name, def->description, def->callback, def->custom_data, def->has_arg, def->error_message);
-        }
+        register_check(checks[i].name, checks[i].description, checks[i].callback, 
+                      checks[i].custom_data, checks[i].has_arg, checks[i].error_message);
     }
 }
 
