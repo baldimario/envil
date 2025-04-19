@@ -170,7 +170,8 @@ void test_check_registry() {
         "Test check description",
         dummy_fn,
         NULL,  // custom_data
-        1      // has_arg
+        1,     // has_arg
+        "Invalid test check value" // error_message
     );
     assert(new_check != NULL);
     assert(strcmp(new_check->name, "test_check") == 0);

@@ -87,7 +87,8 @@ void test_check_registry() {
         "Test check description",
         check_mock,
         (void*)NULL,
-        1
+        1,
+        "Invalid test check value"
     );
     assert(new_check != NULL);
     assert(strcmp(new_check->name, "test_check") == 0);
